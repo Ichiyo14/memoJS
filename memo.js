@@ -1,9 +1,10 @@
 const fs = require('fs')
 const stragePath = './strage.json'
 const argv = require('minimist')(process.argv.slice(2))
-
+const initialStrageFile = { memos: [] }
 if (!fs.existsSync(stragePath)) {
-  console.log('jsonファイルを作成する')
+  const jsonDeta = JSON.stringify(initialStrageFile, null, '\t')
+  fs.writeFileSync(stragePath, jsonDeta)
 }
 class Memo {
   constructor (strage) {
@@ -22,7 +23,7 @@ class Memo {
     })
     reader.on('close', () => {
       lines.splice(-1, 1, lines[lines.length - 1].trim())
-      if ((this._memosOnFirstLines().indexOf(lines[0].trim()) === -1) && (!(lines[0].trim() === ''))) {
+      if ((this.memosOnFirstLines().indexOf(lines[0].trim()) === -1) && (!(lines[0].trim() === ''))) {
         this.memosDeta.memos.push(lines)
         this.strage.write(this.memosDeta)
         console.log('memoを作成しました。')
@@ -34,17 +35,17 @@ class Memo {
   }
 
   list () {
-    this._memosOnFirstLines().forEach(x => console.log(x))
+    this.memosOnFirstLines().forEach(x => console.log(x))
   }
 
   reference () {
     const { Select } = require('enquirer')
     const prompt = new Select({
       message: 'Choose a note you want to see:',
-      choices: this._memosOnFirstLines()
+      choices: this.memosOnFirstLines()
     })
     prompt.run()
-      .then(FistLines => this.printText(this._memosOnFirstLines().indexOf(FistLines)))
+      .then(FistLines => this.printText(this.memosOnFirstLines().indexOf(FistLines)))
       .catch(console.error)
   }
 
@@ -52,15 +53,15 @@ class Memo {
     const { Select } = require('enquirer')
     const prompt = new Select({
       message: 'Choose a note you want to delete:',
-      choices: this._memosOnFirstLines()
+      choices: this.memosOnFirstLines()
     })
     prompt.run()
-      .then(FistLines => this.deleteMemo(this._memosOnFirstLines().indexOf(FistLines)))
+      .then(FistLines => this.deleteMemo(this.memosOnFirstLines().indexOf(FistLines)))
       .then(console.log())
       .catch(console.error)
   }
 
-  _memosOnFirstLines () {
+  memosOnFirstLines () {
     const _memosOnFirstLinesArray = []
     for (const i in this.memosDeta.memos) {
       _memosOnFirstLinesArray.push(this.memosDeta.memos[i][0].replace(/\r?\n/g, ''))
@@ -92,7 +93,7 @@ class Strage {
 
 const strage = new Strage(stragePath)
 const memo = new Memo(strage)
-if (!process.stdin.isTTY) { memo.create() }
+if (!process.stdin.isTTY) memo.create()
 if (argv.l) memo.list()
 if (argv.r) memo.reference()
 if (argv.d) memo.delete()
