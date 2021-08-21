@@ -4,8 +4,6 @@ const argv = require('minimist')(process.argv.slice(2))
 
 if (!fs.existsSync(stragePath)) {
   console.log('jsonファイルを作成する')
-} else {
-  console.log('ok')
 }
 class Memo {
   constructor (strage) {
@@ -13,7 +11,7 @@ class Memo {
     this.memosDeta = strage.memosDeta
   }
 
-  add () {
+  create () {
     process.stdin.setEncoding('utf8')
     const lines = []
     const reader = require('readline').createInterface({
@@ -24,13 +22,19 @@ class Memo {
     })
     reader.on('close', () => {
       lines.splice(-1, 1, lines[lines.length - 1].trim())
-      this.memosDeta.memos.push(lines)
-      this.strage.write(this.memosDeta)
+      if ((this._memosOnFirstLines().indexOf(lines[0].trim()) === -1) && (!(lines[0].trim() === ''))) {
+        this.memosDeta.memos.push(lines)
+        this.strage.write(this.memosDeta)
+        console.log('memoを作成しました。')
+      } else {
+        console.log('1行目が空白かまたは既存のメモと同一です。\n' +
+        '1行目の内容を変更して再度入力してください。')
+      }
     })
   }
 
   list () {
-    this._memosOnFirstLines().map(x => console.log(x))
+    this._memosOnFirstLines().forEach(x => console.log(x))
   }
 
   reference () {
@@ -40,7 +44,18 @@ class Memo {
       choices: this._memosOnFirstLines()
     })
     prompt.run()
-      .then(FistLines => this._printText(this._memosOnFirstLines().indexOf(FistLines)))
+      .then(FistLines => this.printText(this._memosOnFirstLines().indexOf(FistLines)))
+      .catch(console.error)
+  }
+
+  delete () {
+    const { Select } = require('enquirer')
+    const prompt = new Select({
+      message: 'Choose a note you want to delete:',
+      choices: this._memosOnFirstLines()
+    })
+    prompt.run()
+      .then(FistLines => this.deleteMemo(this._memosOnFirstLines().indexOf(FistLines)))
       .then(console.log())
       .catch(console.error)
   }
@@ -56,6 +71,12 @@ class Memo {
   printText (memosIndex) {
     console.log(this.memosDeta.memos[memosIndex].join(''))
   }
+
+  deleteMemo (memosIndex) {
+    this.memosDeta.memos.splice(memosIndex, 1)
+    console.log(this.memosDeta)
+    this.strage.write(this.memosDeta)
+  }
 }
 class Strage {
   constructor (path) {
@@ -68,8 +89,10 @@ class Strage {
     fs.writeFileSync(this.path, jsonDeta)
   }
 }
+
 const strage = new Strage(stragePath)
 const memo = new Memo(strage)
-if (!process.stdin.isTTY) { memo.add() }
+if (!process.stdin.isTTY) { memo.create() }
 if (argv.l) memo.list()
 if (argv.r) memo.reference()
+if (argv.d) memo.delete()
