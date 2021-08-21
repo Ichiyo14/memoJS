@@ -30,9 +30,18 @@ class Memo {
   }
 
   list () {
+    this._memosOnFirstLines().map(x => console.log(x))
+  }
+
+  reference () {
+  }
+
+  _memosOnFirstLines () {
+    const _memosOnFirstLinesArray = []
     for (const i in this.memosDeta.memos) {
-      console.log(this.memosDeta.memos[i][0].replace(/\r?\n/g, ''))
+      _memosOnFirstLinesArray.push(this.memosDeta.memos[i][0].replace(/\r?\n/g, ''))
     }
+    return _memosOnFirstLinesArray
   }
 }
 
