@@ -57,7 +57,6 @@ class Memo {
     })
     prompt.run()
       .then(FistLines => this.deleteMemo(this.memosOnFirstLines().indexOf(FistLines)))
-      .then(console.log())
       .catch(console.error)
   }
 
@@ -75,7 +74,6 @@ class Memo {
 
   deleteMemo (memosIndex) {
     this.memosDeta.memos.splice(memosIndex, 1)
-    console.log(this.memosDeta)
     this.strage.write(this.memosDeta)
   }
 }
