@@ -34,6 +34,15 @@ class Memo {
   }
 
   reference () {
+    const { Select } = require('enquirer')
+    const prompt = new Select({
+      message: 'Choose a note you want to see:',
+      choices: this._memosOnFirstLines()
+    })
+    prompt.run()
+      .then(FistLines => this._printText(this._memosOnFirstLines().indexOf(FistLines)))
+      .then(console.log())
+      .catch(console.error)
   }
 
   _memosOnFirstLines () {
@@ -43,8 +52,11 @@ class Memo {
     }
     return _memosOnFirstLinesArray
   }
-}
 
+  printText (memosIndex) {
+    console.log(this.memosDeta.memos[memosIndex].join(''))
+  }
+}
 class Strage {
   constructor (path) {
     this.memosDeta = JSON.parse(fs.readFileSync(path, 'utf-8'))
@@ -60,3 +72,4 @@ const strage = new Strage(stragePath)
 const memo = new Memo(strage)
 if (!process.stdin.isTTY) { memo.add() }
 if (argv.l) memo.list()
+if (argv.r) memo.reference()
